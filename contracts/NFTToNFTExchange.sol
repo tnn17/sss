@@ -2,8 +2,8 @@
 pragma solidity 0.8.7;
 
 import "./NFTToNFTExchangeDataEventsAndModifiers.sol";
-import "OpenZeppelin/openzeppelin-contracts@4.3.1/contracts/token/ERC721/IERC721.sol";
-import "OpenZeppelin/openzeppelin-contracts@4.3.1/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
 
