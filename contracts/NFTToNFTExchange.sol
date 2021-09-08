@@ -226,9 +226,6 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     isTradeAvailable(
         _tradeId
     )
-    senderIsAskerOrBidder(
-        _tradeId
-    )
     isTradePaid(
         _tradeId
     )
@@ -245,7 +242,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
             trade.bidderReceiveNft = true;
             emit NftWithdrawed(
                 _tradeId, msg.sender, trade.askerNFTId);
-        } else {
+        } else if (msg.sender == trade.asker) {
             require(nftOwnerToTradeIdToNftId[trade.bidder][_tradeId] != 0,
             "NFT is already withdrawed!");
             // Transfer NFT.
@@ -256,7 +253,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
             trade.askerReceiveNft = true;
             emit NftWithdrawed(
                 _tradeId, msg.sender, trade.bidderNFTId);
-        }
+        } 
     }
 
     function withdrawWei(
@@ -264,9 +261,6 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     )
     external
     isTradeAvailable(
-        _tradeId
-    )
-    senderIsAskerOrBidder(
         _tradeId
     )
     isTradePaid(
@@ -288,10 +282,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     function unstakeNft(
         uint _tradeId
     )
-    external
-    senderIsAskerOrBidder(
-        _tradeId
-    ) {
+    external {
         Trade memory trade = idToTrade[_tradeId];
         if (
             trade.bidderReceiveNft == false &&
@@ -299,11 +290,12 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
             trade.askerReceiveWei == false 
         ) {
             if (trade.bidder == msg.sender &&
-             nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.bidderNFTId) {
+            nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.bidderNFTId) {
                 trade.bidderNFTAddress.safeTransferFrom(
                     address(this), msg.sender, trade.bidderNFTId);
                 nftOwnerToTradeIdToNftId[msg.sender][_tradeId] = 0;
-            } else if (nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.askerNFTId) {
+            } else if (trade.asker == msg.sender &&
+            nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.askerNFTId) {
                 trade.askerNFTAddress.safeTransferFrom(
                     address(this), msg.sender, trade.askerNFTId);
                 nftOwnerToTradeIdToNftId[msg.sender][_tradeId] = 0;
@@ -315,10 +307,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         uint _tradeId
     )
     external
-    senderIsAskerOrBidder(
-        _tradeId
-    )
-    isSenderAsker(
+    isSenderBidder(
         _tradeId
     ) {
         Trade memory trade = idToTrade[_tradeId];
