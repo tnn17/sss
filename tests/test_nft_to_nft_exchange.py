@@ -196,16 +196,32 @@ def test_create_ask_and_check(exchange, mint_tokens) -> None:
     assert int(time() + 700) == event_items['expirestAt']
 
 def test_create_ask_with_the_equal_nft(exchange, mint_tokens) -> None:
-    """ Create a bid with the same nft id and check the return message. """
+    """ Create a ask with the same nft id and check the return message. """
     first_addr, second_addr = mint_tokens
 
     with reverts('NFT cannot be the same!'):
-        tx = exchange.createBid(
+        tx = exchange.createAsk(
+            13423,
             13423,
             first_addr,
             first_addr,
-            13423,
             700,
-            {'from': accounts[3], 'value': 3000}
+            4000,
+            {'from': accounts[4]}
         )
-        
+
+def test_for_creating_a_ask_with_a_duration_that_is_less_than_the_minimum(
+    exchange, mint_tokens) -> None:
+    """ Create a ask with duration < min_duration. """
+    first_addr, second_addr = mint_tokens
+
+    with reverts("The duration value cannot be less than the minimum duration value!"):
+        exchange.createAsk(
+            13423,
+            25252,
+            first_addr,
+            second_addr,
+            500,
+            4000,
+            {'from': accounts[4]}
+        )
