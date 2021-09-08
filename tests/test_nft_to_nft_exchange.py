@@ -1,6 +1,8 @@
 """
     Testing NFT to NFT Exchange.
 """
+from time import time
+from collections import OrderedDict
 from typing import Tuple
 import pytest
 
@@ -43,7 +45,7 @@ def test_create_bid_and_check(exchange, mint_tokens) -> None:
         False,
         False
     )
-    
+
     tx = exchange.createBid(
         13423,
         first_addr,
@@ -56,3 +58,29 @@ def test_create_bid_and_check(exchange, mint_tokens) -> None:
     bid = exchange.getTradeById(tx.return_value)
     
     assert bid == expected_bid_data
+
+def test_create_bid_and_check_events(exchange, mint_tokens) -> None:
+    """ Creating a bid and check the emitted events. """
+    first_addr, second_addr = mint_tokens
+    
+    events: OrderedDict = exchange.createBid(
+        13423,
+        first_addr,
+        second_addr,
+        25252,
+        700,
+        {'from': accounts[3], 'value': 3000}
+    ).events
+    # Check if the event was called.
+    assert events.keys()[0] == 'BidCreated'
+    # Check events items.
+    event_items = events['BidCreated']
+    assert 1 == event_items['TradeId']
+    assert accounts[3] == event_items['creator']
+    assert accounts[3] == event_items['bidderAddress']
+    assert first_addr == event_items['bidderNFTAddress']
+    assert second_addr == event_items['askerNFTAddress']
+    assert 13423 == event_items['bidderNFTId']
+    assert 3000 == event_items['price']
+    assert int(time() + 700) == event_items['expirestAt']
+    
