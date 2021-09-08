@@ -6,8 +6,9 @@ from collections import OrderedDict
 from typing import Tuple
 import pytest
 
-from brownie import NFTToNFTExchange, FakeERC721, accounts
+from brownie import NFTToNFTExchange, FakeERC721, accounts, reverts
 from brownie.network.contract import ProjectContract
+from brownie.network.transaction import TransactionReceipt
 
 @pytest.fixture
 def exchange():
@@ -46,7 +47,7 @@ def test_create_bid_and_check(exchange, mint_tokens) -> None:
         False
     )
 
-    tx = exchange.createBid(
+    tx: TransactionReceipt = exchange.createBid(
         13423,
         first_addr,
         second_addr,
@@ -83,4 +84,19 @@ def test_create_bid_and_check_events(exchange, mint_tokens) -> None:
     assert 13423 == event_items['bidderNFTId']
     assert 3000 == event_items['price']
     assert int(time() + 700) == event_items['expirestAt']
+
+def test_create_bid_with_the_equal_nft_id(exchange, mint_tokens) -> None:
+    """ Create a bid with the same nft id and check the return message. """
+    first_addr, second_addr = mint_tokens
+
+    with reverts('NFT cannot be the same!'):
+        tx = exchange.createBid(
+            13423,
+            first_addr,
+            first_addr,
+            13423,
+            700,
+            {'from': accounts[3], 'value': 3000}
+        )
+
     

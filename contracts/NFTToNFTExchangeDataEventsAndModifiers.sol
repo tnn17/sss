@@ -37,7 +37,7 @@ contract NFTToNFTExchangeDataEventsModifiers {
         uint _askerNFTId
     ) {
         if (_bidderNFTAddress == _askerNFTAddress) {
-            require(_bidderNFTId != _askerNFTId);
+            require(_bidderNFTId != _askerNFTId, "NFT cannot be the same!");
         }
         _;
     }
