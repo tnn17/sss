@@ -99,4 +99,17 @@ def test_create_bid_with_the_equal_nft_id(exchange, mint_tokens) -> None:
             {'from': accounts[3], 'value': 3000}
         )
 
-    
+def test_for_creating_a_bid_with_a_duration_that_is_less_than_the_minimum(
+    exchange, mint_tokens) -> None:
+    """ Create a bid with duration < min_duration. """
+    first_addr, second_addr = mint_tokens
+
+    with reverts("The duration value cannot be less than the minimum duration value!"):
+        exchange.createBid(
+            13423,
+            first_addr,
+            second_addr,
+            25252,
+            500,
+            {'from': accounts[3], 'value': 3000}
+        )
