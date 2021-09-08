@@ -94,6 +94,7 @@ def test_create_bid_and_check_events(exchange, mint_tokens) -> None:
     assert first_addr == event_items['bidderNFTAddress']
     assert second_addr == event_items['askerNFTAddress']
     assert 13423 == event_items['bidderNFTId']
+    assert 25252 == event_items['askerNFTId']
     assert 3000 == event_items['price']
     assert int(time() + 700) == event_items['expirestAt']
 
@@ -166,3 +167,45 @@ def test_create_ask_and_check(exchange, mint_tokens) -> None:
     ask = exchange.getTradeById(tx.return_value)
 
     assert expected_ask_data == ask
+
+def test_create_ask_and_check(exchange, mint_tokens) -> None:
+    """ Creating a ask and check the emitted events. """
+    first_addr, second_addr = mint_tokens
+
+    events: OrderedDict = exchange.createAsk(
+        13423,
+        25252,
+        first_addr,
+        second_addr,        
+        700,
+        4000,
+        {'from': accounts[4]}
+    ).events
+    # Check if the event was called.
+    assert events.keys()[0] == 'AskCreated'
+    # Check events items.
+    event_items = events['AskCreated']
+    assert 1 == event_items['TradeId']
+    assert accounts[4] == event_items['creator']
+    assert accounts[4] == event_items['askerAddress']
+    assert first_addr == event_items['bidderNFTAddress']
+    assert second_addr == event_items['askerNFTAddress']
+    assert 13423 == event_items['askerNFTId']
+    assert 25252 == event_items['bidderNFTId']
+    assert 4000 == event_items['price']
+    assert int(time() + 700) == event_items['expirestAt']
+
+def test_create_ask_with_the_equal_nft(exchange, mint_tokens) -> None:
+    """ Create a bid with the same nft id and check the return message. """
+    first_addr, second_addr = mint_tokens
+
+    with reverts('NFT cannot be the same!'):
+        tx = exchange.createBid(
+            13423,
+            first_addr,
+            first_addr,
+            13423,
+            700,
+            {'from': accounts[3], 'value': 3000}
+        )
+        
