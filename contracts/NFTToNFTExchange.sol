@@ -168,7 +168,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         if (_nftId == trade.bidderNFTId) {
             if (trade.bidder == trade.creator) {
                 require(msg.sender == trade.bidder,
-                "Only a bidder can place a bidder's NFT. ");
+                "Only a bidder can place a bidder's NFT.");
             }
             trade.bidder == msg.sender;
             // Transfer NFT.
@@ -177,6 +177,10 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
             // Chaning internal storage.
             nftOwnerToTradeIdToNftId[trade.bidder][_tradeId] = _nftId;
         } else if (_nftId == trade.askerNFTId) {
+            if (trade.asker == trade.creator) {
+                require(msg.sender == trade.asker,
+                "Only a asker can place a asker's NFT.");
+            }
             trade.asker == msg.sender;
             // Transfer NFT.
             trade.askerNFTAddress.safeTransferFrom(
