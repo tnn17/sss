@@ -35,6 +35,18 @@ def mint_tokens(create_tokens) -> Tuple[str, str]:
 def test_create_bid_and_check(exchange, mint_tokens) -> None:
     """ Creating a bid and check the result. """
     first_addr, second_addr = mint_tokens
+
+    """
+        Trade Id
+        Bidder NFT Address
+        Asker NFT Address
+        Bidder NFT Id
+        Asker NFT Id
+        Price
+        Bidder Recieve NFT
+        Asker Receive NFT
+        Asker Receive NFT
+    """
     expected_bid_data = (
         1, 
         first_addr,
@@ -113,3 +125,44 @@ def test_for_creating_a_bid_with_a_duration_that_is_less_than_the_minimum(
             500,
             {'from': accounts[3], 'value': 3000}
         )
+
+def test_create_ask_and_check(exchange, mint_tokens) -> None:
+    """ Create a ask and check the result. """
+    first_addr, second_addr = mint_tokens
+
+    """
+        Trade Id
+        Bidder NFT Address
+        Asker NFT Address
+        Bidder NFT Id
+        Asker NFT Id
+        Price
+        Bidder Recieve NFT
+        Asker Receive NFT
+        Asker Receive NFT
+    """
+    expected_ask_data = (
+        1,                  
+        first_addr,         
+        second_addr,   
+        25252,
+        13423,
+        4000,
+        False,
+        False,
+        False
+    )
+
+    tx: TransactionReceipt = exchange.createAsk(
+        13423,
+        25252,
+        first_addr,
+        second_addr,        
+        700,
+        4000,
+        {'from': accounts[4]}
+    )
+
+    ask = exchange.getTradeById(tx.return_value)
+
+    assert expected_ask_data == ask
