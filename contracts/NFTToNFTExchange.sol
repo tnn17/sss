@@ -158,9 +158,6 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         _tradeId,
         _nftId
     )
-    senderIsAskerOrBidder(
-        _tradeId
-    )
     NFTNotPaidBefore(
         _nftId,
         _tradeId
@@ -169,6 +166,10 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         Trade memory trade = idToTrade[_tradeId];
 
         if (_nftId == trade.bidderNFTId) {
+            if (trade.bidder == trade.creator) {
+                require(msg.sender == trade.bidder,
+                "Only a bidder can place a bidder's NFT. ");
+            }
             trade.bidder == msg.sender;
             // Transfer NFT.
             trade.bidderNFTAddress.safeTransferFrom(

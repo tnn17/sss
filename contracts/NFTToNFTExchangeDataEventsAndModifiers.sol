@@ -50,15 +50,6 @@ contract NFTToNFTExchangeDataEventsModifiers {
         _;
     }
 
-    modifier senderIsAskerOrBidder(
-        uint _tradeId
-    ) {
-        require((msg.sender == idToTrade[_tradeId].bidder) || 
-        (msg.sender == idToTrade[_tradeId].asker),
-        "msg.sender must bu asker or bidder!");
-        _;
-    }
-
     modifier nftIdIsInTrade(
         uint _tradeId,
         uint _nftId
