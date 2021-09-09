@@ -263,7 +263,7 @@ def test_stake_asker_nft_for_a_nonexist_bid_and_check(exchange, create_tokens) -
         exchange.stakeNft(1, 25252, {'from': accounts[4]})
 
 def test_stake_asker_nft_for_expired_bid_and_check(exchange, create_tokens) -> None:
-    """ Put NFT and check the changes in the internal memory. """
+    """ Put NFT for expired bid and check the changes in the internal memory. """
     fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
     fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
     fake_token_1.mint(13424, accounts[3])
@@ -284,7 +284,7 @@ def test_stake_asker_nft_for_expired_bid_and_check(exchange, create_tokens) -> N
         exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
 
 def test_stake_another_nft_for_bid_and_check(exchange, create_tokens) -> None:
-    """ Put NFT and check the changes in the internal memory. """
+    """ Put another NFT and check the changes in the internal memory. """
     fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
     fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
     # Create bid.
