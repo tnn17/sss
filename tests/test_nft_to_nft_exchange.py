@@ -392,3 +392,22 @@ def test_payment_from_a_bidder_and_check_event(exchange, create_tokens) -> None:
     assert 1 == event_items['tradeId']
     assert accounts[3] == event_items['bidder']
     assert 3000 == event_items['amount']
+
+def test_of_payment_for_expired_trade_and_check_revert(exchange, create_tokens) -> None:
+    """ Put NFT for expired bid and check revert. """
+    first_addr, second_adddr = create_tokens
+
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_addr,
+        second_adddr,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Time travel. 
+    chain.sleep(701)
+    with reverts("The timestamp of the trade must be less than the block timestamp value!"):
+        exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000}).events
