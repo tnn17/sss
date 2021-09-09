@@ -206,7 +206,8 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         _tradeId
     )
     {
-        require(msg.value == idToTrade[_tradeId].price);
+        require(msg.value == idToTrade[_tradeId].price,
+        "Amount of Wei must be equal to the price.");
         addressToTradeIdToWei[msg.sender][_tradeId] += msg.value;
         determineIfATradeIsPaid(_tradeId);
         emit AmountPaid(
