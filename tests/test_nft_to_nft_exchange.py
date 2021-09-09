@@ -6,9 +6,9 @@ from collections import OrderedDict
 from typing import Tuple
 import pytest
 
-from brownie import NFTToNFTExchange, FakeERC721, accounts, reverts
 from brownie.network.contract import ProjectContract
 from brownie.network.transaction import TransactionReceipt
+from brownie import NFTToNFTExchange, FakeERC721, accounts, reverts, chain
 
 @pytest.fixture
 def exchange() -> ProjectContract:
@@ -262,5 +262,23 @@ def test_stake_asker_nft_for_a_nonexist_bid_and_check(exchange, create_tokens) -
     with reverts("Trade does not exist!"):    
         exchange.stakeNft(1, 25252, {'from': accounts[4]})
 
+def test_stake_asker_nft_for_bid_and_check(exchange, create_tokens) -> None:
+    """ Put NFT and check the changes in the internal memory. """
+    fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
+    fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
+    fake_token_1.mint(13424, accounts[3])
+    fake_token_2.mint(25252, accounts[4])
     
-
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        fake_token_1.address,
+        fake_token_2.address,
+        25252,
+        700,
+        {'from': accounts[3], 'value': 3000}
+    )
+    # Time travel. 
+    chain.sleep(800)
+    with reverts("The timestamp of the trade must be less than the block timestamp value!"):
+        exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
