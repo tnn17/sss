@@ -369,3 +369,26 @@ def test_stake_asker_nft_from_not_asker_address_for_ask_and_check(exchange, crea
     second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
     with reverts("Only a asker can place a asker's NFT."):
         exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+
+def test_payment_from_a_bidder_and_check_event(exchange, create_tokens) -> None: 
+    # Create bid.
+    first_fake_token, second_fake_token = create_tokens
+
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Make payment.
+    events = exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000}).events
+    # Check if the event was called.
+    assert events.keys()[0] == 'AmountPaid'
+    # Check events items.
+    event_items = events['AmountPaid']
+    assert 1 == event_items['tradeId']
+    assert accounts[3] == event_items['bidder']
+    assert 3000 == event_items['amount']
