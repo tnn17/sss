@@ -448,3 +448,21 @@ def test_of_payment_for_bid_from_another_address(exchange, create_tokens) -> Non
 def test_of_payment_for_non_exsitent_trade(exchange) -> None:
     with reverts("Trade does not exist!"):
         exchange.pay(1, {'from': accounts[3], 'value': 3000})
+
+def test_of_payment_for_already_paid_trade(exchange, create_tokens) -> None:
+    first_fake_token, second_fake_token = create_tokens
+
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Make first payment.
+    exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
+    # Make second payment.
+    with reverts("Trade has already been paid!"):
+        exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
