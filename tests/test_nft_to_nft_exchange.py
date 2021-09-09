@@ -451,7 +451,7 @@ def test_of_payment_for_non_exsitent_trade(exchange) -> None:
 
 def test_of_payment_for_already_paid_trade(exchange, create_tokens) -> None:
     first_fake_token, second_fake_token = create_tokens
-
+    # Create bid.
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
         25252,
@@ -466,3 +466,31 @@ def test_of_payment_for_already_paid_trade(exchange, create_tokens) -> None:
     # Make second payment.
     with reverts("Trade has already been paid!"):
         exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
+
+def test_of_paid_flag(exchange, create_tokens) -> None:
+    """The trade is considered paid after the contract has received all NFT and Wei."""
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Stake Wei.
+    exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
+    # Stake bidder NFT.
+    first_fake_token.approve(exchange.address, 13424, {'from': accounts[3]})
+    exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[3]})
+    # Stake asker NFT.
+    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
+    exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+    # Get trade.
+    trade = exchange.getTradeById(create_bid_tx.return_value)
+    # Check.
+    assert trade[6] == True
