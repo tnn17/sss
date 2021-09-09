@@ -258,3 +258,9 @@ def test_stake_asker_nft_for_bid_and_check(exchange, create_tokens) -> None:
     assert bid[4] == accounts[4]
     assert bid[6] == False
 
+def test_stake_asker_nft_for_a_nonexist_bid_and_check(exchange, create_tokens) -> None:
+    with reverts("Trade does not exist!"):    
+        exchange.stakeNft(1, 25252, {'from': accounts[4]})
+
+    
+
