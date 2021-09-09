@@ -427,3 +427,19 @@ def test_of_payment_for_bid_with_wrong_amount(exchange, create_tokens) -> None:
     )
     with reverts("Amount of Wei must be equal to the price!"):
         exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 2999})
+
+def test_of_payment_for_bid_from_another_address(exchange, create_tokens) -> None:
+    first_addr, second_adddr = create_tokens
+
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_addr,
+        second_adddr,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    with reverts("The sender's address must match the bidder's address!"):
+        exchange.pay(create_bid_tx.return_value, {'from': accounts[4], 'value': 3000})
