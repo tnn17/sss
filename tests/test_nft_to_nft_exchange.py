@@ -322,3 +322,22 @@ def test_stake_bidder_nft_for_ask_and_check(exchange, create_tokens) -> None:
     assert exchange.address == second_fake_token.ownerOf(25252)
     assert bid[3] == accounts[4]
     assert bid[6] == False
+
+def test_stake_bidder_nft_from_not_bidder_address_for_bid_and_check(exchange, create_tokens) -> None:
+    """ Put bidder NFT from not bidder address for bid and check revert. """
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[4])
+
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        first_fake_token.address,
+        second_fake_token.address,
+        25252,
+        700,
+        {'from': accounts[3], 'value': 3000}
+    )
+    # Stake bidder NFT from another address.
+    first_fake_token.approve(exchange.address, 13424, {'from': accounts[4]})
+    with reverts("Only a bidder can place a bidder's NFT."):
+        exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[4]})
