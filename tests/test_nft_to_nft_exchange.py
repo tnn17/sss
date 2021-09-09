@@ -11,7 +11,7 @@ from brownie.network.contract import ProjectContract
 from brownie.network.transaction import TransactionReceipt
 
 @pytest.fixture
-def exchange():
+def exchange() -> ProjectContract:
     """ Creating instance of NFTToNFTExchange. """
     return NFTToNFTExchange.deploy(600, {'from': accounts[0]})
 
@@ -40,23 +40,25 @@ def test_create_bid_and_check(exchange, mint_tokens) -> None:
         Trade Id
         Bidder NFT Address
         Asker NFT Address
+        Bidder Address
+        Asker Address
+        Creator Address
+        Paid
         Bidder NFT Id
         Asker NFT Id
         Price
-        Bidder Recieve NFT
-        Asker Receive NFT
-        Asker Receive NFT
     """
     expected_bid_data = (
         1, 
         first_addr,
         second_addr,
+        accounts[3],
+        "0x0000000000000000000000000000000000000000",
+        accounts[3],
+        False,
         13423,
         25252,
-        3000,
-        False,
-        False,
-        False
+        3000
     )
 
     tx: TransactionReceipt = exchange.createBid(
@@ -135,17 +137,21 @@ def test_create_ask_and_check(exchange, mint_tokens) -> None:
         Trade Id
         Bidder NFT Address
         Asker NFT Address
+        Bidder Address
+        Asker Address
+        Creator Address
+        Paid
         Bidder NFT Id
         Asker NFT Id
         Price
-        Bidder Recieve NFT
-        Asker Receive NFT
-        Asker Receive NFT
     """
     expected_ask_data = (
         1,                  
         first_addr,         
-        second_addr,   
+        second_addr, 
+        "0x0000000000000000000000000000000000000000",
+        accounts[4],
+        accounts[4],  
         25252,
         13423,
         4000,
@@ -225,3 +231,30 @@ def test_for_creating_a_ask_with_a_duration_that_is_less_than_the_minimum(
             4000,
             {'from': accounts[4]}
         )
+
+def test_stake_asker_nft_for_bid_and_check(exchange, create_tokens) -> None:
+    """ Put NFT and check the changes in the internal memory. """
+    fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
+    fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
+    fake_token_1.mint(13424, accounts[3])
+    fake_token_2.mint(25252, accounts[4])
+    
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        fake_token_1.address,
+        fake_token_2.address,
+        25252,
+        700,
+        {'from': accounts[3], 'value': 3000}
+    )
+    # Stake asker NFT.
+    fake_token_2.approve(exchange.address, 25252, {'from': accounts[4]})
+    exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+    # Get trade.
+    bid: OrderedDict = exchange.getTradeById(create_bid_tx.return_value)
+
+    assert exchange.address == fake_token_2.ownerOf(25252)
+    assert bid[4] == accounts[4]
+    assert bid[6] == False
+
