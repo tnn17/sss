@@ -282,3 +282,23 @@ def test_stake_asker_nft_for_expired_bid_and_check(exchange, create_tokens) -> N
     chain.sleep(800)
     with reverts("The timestamp of the trade must be less than the block timestamp value!"):
         exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+
+def test_stake_another_nft_for_bid_and_check(exchange, create_tokens) -> None:
+    """ Put NFT and check the changes in the internal memory. """
+    fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
+    fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
+    # Create bid.
+    fake_token_1.mint(13424, accounts[3])
+    fake_token_2.mint(25252, accounts[4])
+   
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        fake_token_1.address,
+        fake_token_2.address,
+        25252,
+        700,
+        {'from': accounts[3], 'value': 3000}
+    )
+    with reverts("The NFT identifier is not the seller's NFT or the buyer's NFT!"):
+        exchange.stakeNft(create_bid_tx.return_value, 11111, {'from': accounts[4]})
+    
