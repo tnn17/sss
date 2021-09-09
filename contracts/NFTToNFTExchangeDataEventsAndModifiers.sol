@@ -104,7 +104,8 @@ contract NFTToNFTExchangeDataEventsModifiers is IERC721Receiver{
     modifier weiNotPaidBeforeForThisTrade(
         uint _tradeId
     ) {
-        require(addressToTradeIdToWei[msg.sender][_tradeId] == 0);
+        require(addressToTradeIdToWei[msg.sender][_tradeId] == 0,
+        "Trade has already been paid!");
         _;
     }
 
