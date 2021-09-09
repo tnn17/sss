@@ -2,8 +2,9 @@
 pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract NFTToNFTExchangeDataEventsModifiers {
+contract NFTToNFTExchangeDataEventsModifiers is IERC721Receiver{
     address internal zero;
     uint internal minDuration;
     uint internal lastTradeId;
@@ -54,7 +55,7 @@ contract NFTToNFTExchangeDataEventsModifiers {
         uint _tradeId,
         uint _nftId
     ) {
-        require((_nftId == idToTrade[_tradeId].bidderNFTId) &&
+        require((_nftId == idToTrade[_tradeId].bidderNFTId) ||
         (_nftId == idToTrade[_tradeId].askerNFTId),
         "The NFT identifier is not the seller's NFT or the buyer's NFT!");
         _;
@@ -169,4 +170,7 @@ contract NFTToNFTExchangeDataEventsModifiers {
         uint indexed amount
     );
 
+    function onERC721Received(address, address, uint256, bytes memory) public virtual override returns (bytes4) {
+        return this.onERC721Received.selector;
+    }
 }

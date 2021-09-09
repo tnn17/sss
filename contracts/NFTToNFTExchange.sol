@@ -163,14 +163,14 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         _tradeId
     )
     external {
-        Trade memory trade = idToTrade[_tradeId];
+        Trade storage trade = idToTrade[_tradeId];
 
         if (_nftId == trade.bidderNFTId) {
             if (trade.bidder == trade.creator) {
                 require(msg.sender == trade.bidder,
                 "Only a bidder can place a bidder's NFT.");
             }
-            trade.bidder == msg.sender;
+            trade.bidder = msg.sender;
             // Transfer NFT.
             trade.bidderNFTAddress.safeTransferFrom(
                 trade.bidder, address(this), _nftId);
@@ -181,7 +181,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
                 require(msg.sender == trade.asker,
                 "Only a asker can place a asker's NFT.");
             }
-            trade.asker == msg.sender;
+            trade.asker = msg.sender;
             // Transfer NFT.
             trade.askerNFTAddress.safeTransferFrom(
                 trade.asker, address(this), _nftId);
@@ -331,19 +331,20 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     isTradeExist(
         _tradeId
     )
-    returns (uint, IERC721, IERC721, uint256, uint256, uint256, bool, bool, bool) {
+    returns (uint, IERC721, IERC721, address, address, address, bool, uint256, uint256, uint256) {
         Trade memory trade = idToTrade[_tradeId];
 
         return (
             _tradeId,
             trade.bidderNFTAddress,
             trade.askerNFTAddress,
+            trade.bidder,
+            trade.asker,
+            trade.creator,
+            trade.paid,
             trade.bidderNFTId,
             trade.askerNFTId,
-            trade.price,
-            trade.bidderReceiveNft,
-            trade.askerReceiveWei,
-            trade.askerReceiveNft
+            trade.price
         );
     }
 }
