@@ -58,10 +58,11 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
 
     function createBid(
         uint _bidderNFTId,
-        IERC721 _bidderNFTAddress, 
+        uint _askerNFTId,
+        IERC721 _bidderNFTAddress,
         IERC721 _askerNFTAddress,
-        uint _askerNFTId, 
-        uint _duration
+        uint _duration,
+        uint _price
     ) 
         external 
         payable
@@ -88,7 +89,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
             askerNFTId: _askerNFTId,
             bidderNFTId:_bidderNFTId,
             expirestAt: expirestAt,
-            price: msg.value,
+            price: _price,
             paid: false,
             bidderReceiveNft: false,
             askerReceiveNft: false,
@@ -101,8 +102,8 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     }
 
     function createAsk(
-        uint _askerNFTId,
         uint _bidderNFTId,
+        uint _askerNFTId,
         IERC721 _bidderNFTAddress,
         IERC721 _askerNFTAddress,
         uint _duration,
