@@ -193,13 +193,13 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     ) 
     external
     payable
+    isTradeExist(
+        _tradeId
+    )
     isTradeAvailable(
         _tradeId
     )
     isSenderBidder(
-        _tradeId
-    )
-    isTradeExist(
         _tradeId
     )
     weiNotPaidBeforeForThisTrade(

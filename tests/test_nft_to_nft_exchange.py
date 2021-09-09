@@ -429,6 +429,7 @@ def test_of_payment_for_bid_with_wrong_amount(exchange, create_tokens) -> None:
         exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 2999})
 
 def test_of_payment_for_bid_from_another_address(exchange, create_tokens) -> None:
+    """ Test of payment for bid from not bidder address."""
     first_addr, second_adddr = create_tokens
 
     # Create bid.
@@ -443,3 +444,7 @@ def test_of_payment_for_bid_from_another_address(exchange, create_tokens) -> Non
     )
     with reverts("The sender's address must match the bidder's address!"):
         exchange.pay(create_bid_tx.return_value, {'from': accounts[4], 'value': 3000})
+
+def test_of_payment_for_non_exsitent_trade(exchange) -> None:
+    with reverts("Trade does not exist!"):
+        exchange.pay(1, {'from': accounts[3], 'value': 3000})
