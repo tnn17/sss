@@ -254,7 +254,9 @@ def test_stake_asker_nft_for_bid_and_check(exchange, create_tokens) -> None:
     bid: OrderedDict = exchange.getTradeById(create_bid_tx.return_value)
 
     assert exchange.address == second_fake_token.ownerOf(25252)
+    # Check asker.
     assert bid[4] == accounts[4]
+    # Check paid flag.
     assert bid[6] == False
 
 def test_stake_asker_nft_for_a_nonexist_bid_and_check(exchange) -> None:
@@ -294,3 +296,29 @@ def test_stake_another_nft_for_bid_and_check(exchange, mint_tokens) -> None:
     )
     with reverts("The NFT identifier is not the seller's NFT or the buyer's NFT!"):
         exchange.stakeNft(create_bid_tx.return_value, 11111, {'from': accounts[4]})
+
+def test_stake_bidder_nft_for_ask_and_check(exchange, create_tokens) -> None:
+    """ Put NFT and check the changes in the internal memory. """
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
+    
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createAsk(
+        13424,
+        25252,
+        second_fake_token.address,
+        first_fake_token.address,
+        4000,
+        700,
+        {'from': accounts[3]}
+    )
+    # Stake asker NFT.
+    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
+    exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+    # Get trade.
+    bid: OrderedDict = exchange.getTradeById(create_bid_tx.return_value)
+
+    assert exchange.address == second_fake_token.ownerOf(25252)
+    assert bid[3] == accounts[4]
+    assert bid[6] == False
