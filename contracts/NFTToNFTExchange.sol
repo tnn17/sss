@@ -158,10 +158,6 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         _tradeId,
         _nftId
     )
-    NFTNotPaidBefore(
-        _nftId,
-        _tradeId
-    )
     external {
         Trade storage trade = idToTrade[_tradeId];
 

@@ -101,20 +101,6 @@ contract NFTToNFTExchangeDataEventsModifiers is IERC721Receiver{
         _;
     }
 
-    modifier NFTNotPaidBefore(
-        uint _nftId,
-        uint _tradeId
-    ) {
-        Trade memory trade = idToTrade[_tradeId];
-        if (trade.bidderNFTId == _nftId) {
-            require(NFTThatAlreadyStaked[trade.bidderNFTAddress] == 0);
-        }
-        else if (trade.askerNFTId == _nftId) {
-            require(NFTThatAlreadyStaked[trade.askerNFTAddress] == 0);
-        }
-        _;
-    }
-
     modifier weiNotPaidBeforeForThisTrade(
         uint _tradeId
     ) {
