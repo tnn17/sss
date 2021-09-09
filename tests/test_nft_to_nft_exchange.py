@@ -63,11 +63,12 @@ def test_create_bid_and_check(exchange, mint_tokens) -> None:
 
     tx: TransactionReceipt = exchange.createBid(
         13423,
+        25252,
         first_addr,
         second_addr,
-        25252,
         700,
-        {'from': accounts[3], 'value': 3000}
+        3000,
+        {'from': accounts[3]}
     )
     
     bid = exchange.getTradeById(tx.return_value)
@@ -80,11 +81,12 @@ def test_create_bid_and_check_events(exchange, mint_tokens) -> None:
     
     events: OrderedDict = exchange.createBid(
         13423,
+        25252,
         first_addr,
         second_addr,
-        25252,
         700,
-        {'from': accounts[3], 'value': 3000}
+        3000,
+        {'from': accounts[3]}
     ).events
     # Check if the event was called.
     assert events.keys()[0] == 'BidCreated'
@@ -107,11 +109,12 @@ def test_create_bid_with_the_equal_nft_id(exchange, mint_tokens) -> None:
     with reverts('NFT cannot be the same!'):
         tx = exchange.createBid(
             13423,
-            first_addr,
-            first_addr,
             13423,
+            first_addr,
+            first_addr,
             700,
-            {'from': accounts[3], 'value': 3000}
+            3000,
+            {'from': accounts[3]}
         )
 
 def test_for_creating_a_bid_with_a_duration_that_is_less_than_the_minimum(
@@ -122,11 +125,12 @@ def test_for_creating_a_bid_with_a_duration_that_is_less_than_the_minimum(
     with reverts("The duration value cannot be less than the minimum duration value!"):
         exchange.createBid(
             13423,
+            25252,
             first_addr,
             second_addr,
-            25252,
             500,
-            {'from': accounts[3], 'value': 3000}
+            3000,
+            {'from': accounts[3]}
         )
 
 def test_create_ask_and_check(exchange, mint_tokens) -> None:
@@ -152,8 +156,8 @@ def test_create_ask_and_check(exchange, mint_tokens) -> None:
         "0x0000000000000000000000000000000000000000",
         accounts[4],
         accounts[4],  
-        25252,
         13423,
+        25252,
         4000,
         False,
         False,
@@ -196,8 +200,8 @@ def test_create_ask_and_check(exchange, mint_tokens) -> None:
     assert accounts[4] == event_items['askerAddress']
     assert first_addr == event_items['bidderNFTAddress']
     assert second_addr == event_items['askerNFTAddress']
-    assert 13423 == event_items['askerNFTId']
-    assert 25252 == event_items['bidderNFTId']
+    assert 25252 == event_items['askerNFTId']
+    assert 13423 == event_items['bidderNFTId']
     assert 4000 == event_items['price']
     assert int(time() + 700) == event_items['expirestAt']
 
@@ -241,11 +245,12 @@ def test_stake_asker_nft_for_bid_and_check(exchange, create_tokens) -> None:
     # Create bid.
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
+        25252,
         first_fake_token.address,
         second_fake_token.address,
-        25252,
         700,
-        {'from': accounts[3], 'value': 3000}
+        3000,
+        {'from': accounts[3]}
     )
     # Stake asker NFT.
     second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
@@ -270,11 +275,12 @@ def test_stake_asker_nft_for_expired_bid_and_check(exchange, mint_tokens) -> Non
     # Create bid.
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
+        25252,
         first_addr,
         second_adddr,
-        25252,
         700,
-        {'from': accounts[3], 'value': 3000}
+        3000,
+        {'from': accounts[3]}
     )
     # Time travel. 
     chain.sleep(800)
@@ -288,11 +294,12 @@ def test_stake_another_nft_for_bid_and_check(exchange, mint_tokens) -> None:
     # Create bid.
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
+        25252,
         first_addr,
         second_adddr,
-        25252,
         700,
-        {'from': accounts[3], 'value': 3000}
+        3000,
+        {'from': accounts[3]}
     )
     with reverts("The NFT identifier is not the seller's NFT or the buyer's NFT!"):
         exchange.stakeNft(create_bid_tx.return_value, 11111, {'from': accounts[4]})
@@ -303,24 +310,24 @@ def test_stake_bidder_nft_for_ask_and_check(exchange, create_tokens) -> None:
     first_fake_token.mint(13424, accounts[3])
     second_fake_token.mint(25252, accounts[4])
     
-    # Create bid.
+    # Create ask.
     create_bid_tx: TransactionReceipt = exchange.createAsk(
         13424,
         25252,
-        second_fake_token.address,
         first_fake_token.address,
+        second_fake_token.address,
         4000,
         700,
-        {'from': accounts[3]}
+        {'from': accounts[4]}
     )
     # Stake asker NFT.
-    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
-    exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+    first_fake_token.approve(exchange.address, 13424, {'from': accounts[3]})
+    exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[3]})
     # Get trade.
     bid: OrderedDict = exchange.getTradeById(create_bid_tx.return_value)
 
-    assert exchange.address == second_fake_token.ownerOf(25252)
-    assert bid[3] == accounts[4]
+    assert exchange.address == first_fake_token.ownerOf(13424)
+    assert bid[3] == accounts[3]
     assert bid[6] == False
 
 def test_stake_bidder_nft_from_not_bidder_address_for_bid_and_check(exchange, create_tokens) -> None:
@@ -331,13 +338,34 @@ def test_stake_bidder_nft_from_not_bidder_address_for_bid_and_check(exchange, cr
     # Create bid.
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
+        25252,
         first_fake_token.address,
         second_fake_token.address,
-        25252,
         700,
-        {'from': accounts[3], 'value': 3000}
+        3000,
+        {'from': accounts[3]}
     )
     # Stake bidder NFT from another address.
     first_fake_token.approve(exchange.address, 13424, {'from': accounts[4]})
     with reverts("Only a bidder can place a bidder's NFT."):
         exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[4]})
+
+def test_stake_asker_nft_from_not_asker_address_for_ask_and_check(exchange, create_tokens) -> None:
+    """ Put asker NFT from not asker address for ask and check revert. """
+    first_fake_token, second_fake_token = create_tokens
+    second_fake_token.mint(25252, accounts[4])
+
+    # Create ask.
+    create_bid_tx: TransactionReceipt = exchange.createAsk(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        4000,
+        700,
+        {'from': accounts[3]}
+    )
+    # Stake asker NFT from another address.
+    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
+    with reverts("Only a asker can place a asker's NFT."):
+        exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
