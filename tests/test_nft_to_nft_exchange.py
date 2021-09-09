@@ -262,7 +262,7 @@ def test_stake_asker_nft_for_a_nonexist_bid_and_check(exchange, create_tokens) -
     with reverts("Trade does not exist!"):    
         exchange.stakeNft(1, 25252, {'from': accounts[4]})
 
-def test_stake_asker_nft_for_bid_and_check(exchange, create_tokens) -> None:
+def test_stake_asker_nft_for_expired_bid_and_check(exchange, create_tokens) -> None:
     """ Put NFT and check the changes in the internal memory. """
     fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
     fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
