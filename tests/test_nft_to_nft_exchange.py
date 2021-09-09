@@ -101,7 +101,7 @@ def test_create_bid_and_check_events(exchange, mint_tokens) -> None:
     assert int(time() + 700) == event_items['expirestAt']
 
 def test_create_bid_with_the_equal_nft_id(exchange, mint_tokens) -> None:
-    """ Create a bid with the same nft id and check the return message. """
+    """ Create a bid with the same nft id and check revert. """
     first_addr, second_addr = mint_tokens
 
     with reverts('NFT cannot be the same!'):
@@ -202,7 +202,7 @@ def test_create_ask_and_check(exchange, mint_tokens) -> None:
     assert int(time() + 700) == event_items['expirestAt']
 
 def test_create_ask_with_the_equal_nft(exchange, mint_tokens) -> None:
-    """ Create a ask with the same nft id and check the return message. """
+    """ Create a ask with the same nft id and check revert. """
     first_addr, second_addr = mint_tokens
 
     with reverts('NFT cannot be the same!'):
@@ -218,7 +218,7 @@ def test_create_ask_with_the_equal_nft(exchange, mint_tokens) -> None:
 
 def test_for_creating_a_ask_with_a_duration_that_is_less_than_the_minimum(
     exchange, mint_tokens) -> None:
-    """ Create a ask with duration < min_duration. """
+    """ Create a ask with duration < min_duration and check revert. """
     first_addr, second_addr = mint_tokens
 
     with reverts("The duration value cannot be less than the minimum duration value!"):
@@ -234,46 +234,42 @@ def test_for_creating_a_ask_with_a_duration_that_is_less_than_the_minimum(
 
 def test_stake_asker_nft_for_bid_and_check(exchange, create_tokens) -> None:
     """ Put NFT and check the changes in the internal memory. """
-    fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
-    fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
-    fake_token_1.mint(13424, accounts[3])
-    fake_token_2.mint(25252, accounts[4])
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
     
     # Create bid.
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
-        fake_token_1.address,
-        fake_token_2.address,
+        first_fake_token.address,
+        second_fake_token.address,
         25252,
         700,
         {'from': accounts[3], 'value': 3000}
     )
     # Stake asker NFT.
-    fake_token_2.approve(exchange.address, 25252, {'from': accounts[4]})
+    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
     exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
     # Get trade.
     bid: OrderedDict = exchange.getTradeById(create_bid_tx.return_value)
 
-    assert exchange.address == fake_token_2.ownerOf(25252)
+    assert exchange.address == second_fake_token.ownerOf(25252)
     assert bid[4] == accounts[4]
     assert bid[6] == False
 
-def test_stake_asker_nft_for_a_nonexist_bid_and_check(exchange, create_tokens) -> None:
+def test_stake_asker_nft_for_a_nonexist_bid_and_check(exchange) -> None:
     with reverts("Trade does not exist!"):    
         exchange.stakeNft(1, 25252, {'from': accounts[4]})
 
-def test_stake_asker_nft_for_expired_bid_and_check(exchange, create_tokens) -> None:
-    """ Put NFT for expired bid and check the changes in the internal memory. """
-    fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
-    fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
-    fake_token_1.mint(13424, accounts[3])
-    fake_token_2.mint(25252, accounts[4])
+def test_stake_asker_nft_for_expired_bid_and_check(exchange, mint_tokens) -> None:
+    """ Put NFT for expired bid and check revert. """
+    first_addr, second_adddr = mint_tokens
     
     # Create bid.
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
-        fake_token_1.address,
-        fake_token_2.address,
+        first_addr,
+        second_adddr,
         25252,
         700,
         {'from': accounts[3], 'value': 3000}
@@ -283,22 +279,18 @@ def test_stake_asker_nft_for_expired_bid_and_check(exchange, create_tokens) -> N
     with reverts("The timestamp of the trade must be less than the block timestamp value!"):
         exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
 
-def test_stake_another_nft_for_bid_and_check(exchange, create_tokens) -> None:
-    """ Put another NFT and check the changes in the internal memory. """
-    fake_token_1 = FakeERC721.deploy({'from': accounts[1]})
-    fake_token_2 = FakeERC721.deploy({'from': accounts[2]})
+def test_stake_another_nft_for_bid_and_check(exchange, mint_tokens) -> None:
+    """ Put another NFT and check revert. """
+    first_addr, second_adddr = mint_tokens
+    
     # Create bid.
-    fake_token_1.mint(13424, accounts[3])
-    fake_token_2.mint(25252, accounts[4])
-   
     create_bid_tx: TransactionReceipt = exchange.createBid(
         13424,
-        fake_token_1.address,
-        fake_token_2.address,
+        first_addr,
+        second_adddr,
         25252,
         700,
         {'from': accounts[3], 'value': 3000}
     )
     with reverts("The NFT identifier is not the seller's NFT or the buyer's NFT!"):
         exchange.stakeNft(create_bid_tx.return_value, 11111, {'from': accounts[4]})
-    
