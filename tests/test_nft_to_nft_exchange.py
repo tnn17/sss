@@ -568,3 +568,22 @@ def test_unstake_bidder_nft_when_asker_receive_nft(exchange, create_tokens) -> N
     # Bidder tries to unstake bidder NFT.
     with reverts("It is impossible to return NFT after part of the reward has been received!"):
         exchange.unstakeNft(create_bid_tx.return_value, {'from': accounts[3]})
+
+def test_unstake_wei(exchange, create_tokens) -> None:
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Make payment.
+    exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
+    # Check payment.
+    assert exchange.balance() == 3000
