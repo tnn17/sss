@@ -620,7 +620,7 @@ def test_unstake_wei_when_asker_receive_nft(exchange, create_tokens) -> None:
     with reverts("It is impossible to return Wei after part of the reward has been received!"):
         exchange.unstakeWei(create_bid_tx.return_value, {'from': accounts[3]})
 
-def test_withdraw_nft(exchange, create_tokens) -> None:
+def test_withdraw_nft_and_withdraw_wei(exchange, create_tokens) -> None:
     first_fake_token, second_fake_token = create_tokens
     first_fake_token.mint(13424, accounts[3])
     second_fake_token.mint(25252, accounts[4])
@@ -653,3 +653,63 @@ def test_withdraw_nft(exchange, create_tokens) -> None:
     # Asker receive bidder Wei.
     exchange.withdrawWei(create_bid_tx.return_value, {'from': accounts[4]})
     assert exchange.balance() == 0
+
+def test_withdraw_already_withdrawn_bidder_nft(exchange, create_tokens) -> None:
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Stake bidder NFT.
+    first_fake_token.approve(exchange.address, 13424, {'from': accounts[3]})
+    exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[3]})
+    assert first_fake_token.ownerOf(13424) == exchange.address
+    # Stake asker NFT.
+    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
+    exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+    assert second_fake_token.ownerOf(25252) == exchange.address
+    # Payment.
+    exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
+    # Asker withdraw bidder NFT.
+    exchange.withdrawNft(create_bid_tx.return_value, {'from': accounts[4]})
+    assert first_fake_token.ownerOf(13424) == accounts[4]
+    with reverts("NFT is already withdrawed!"):
+        exchange.withdrawNft(create_bid_tx.return_value, {'from': accounts[4]})
+
+def test_withdraw_already_withdrawn_asker_nft(exchange, create_tokens) -> None:
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Stake bidder NFT.
+    first_fake_token.approve(exchange.address, 13424, {'from': accounts[3]})
+    exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[3]})
+    assert first_fake_token.ownerOf(13424) == exchange.address
+    # Stake asker NFT.
+    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
+    exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+    assert second_fake_token.ownerOf(25252) == exchange.address
+    # Payment.
+    exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
+    # Asker withdraw bidder NFT.
+    exchange.withdrawNft(create_bid_tx.return_value, {'from': accounts[3]})
+    assert second_fake_token.ownerOf(25252) == accounts[3]
+    with reverts("NFT is already withdrawed!"):
+        exchange.withdrawNft(create_bid_tx.return_value, {'from': accounts[3]})
