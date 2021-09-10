@@ -494,3 +494,26 @@ def test_of_paid_flag(exchange, create_tokens) -> None:
     trade = exchange.getTradeById(create_bid_tx.return_value)
     # Check.
     assert trade[6] == True
+
+def test_unstake_nft(exchange, create_tokens) -> None:
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Stake bidder NFT.
+    first_fake_token.approve(exchange.address, 13424, {'from': accounts[3]})
+    exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[3]})
+    # Check transfer.
+    assert first_fake_token.ownerOf(13424) == exchange.address
+    # Unstake.
+    exchange.unstakeNft(create_bid_tx.return_value, {'from': accounts[3]})
+    assert first_fake_token.ownerOf(13424) == accounts[3]
