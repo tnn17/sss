@@ -221,9 +221,6 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         uint _tradeId
     )
     external
-    isTradeAvailable(
-        _tradeId
-    )
     isTradePaid(
         _tradeId
     )
@@ -258,9 +255,6 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         uint _tradeId
     )
     external
-    isTradeAvailable(
-        _tradeId
-    )
     isTradePaid(
         _tradeId
     ) 
@@ -316,7 +310,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
             trade.askerReceiveWei),
             "It is impossible to return Wei after part of the reward has been received!"
         );
-        if (addressToTradeIdToWei[trade.asker][_tradeId] == trade.price) {
+        if (addressToTradeIdToWei[trade.bidder][_tradeId] == trade.price) {
             payable(trade.asker).transfer(trade.price);
             addressToTradeIdToWei[trade.asker][_tradeId] = 0;
         }

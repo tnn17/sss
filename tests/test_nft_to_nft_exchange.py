@@ -587,3 +587,35 @@ def test_unstake_wei(exchange, create_tokens) -> None:
     exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
     # Check payment.
     assert exchange.balance() == 3000
+    # Unstake Wei.
+    exchange.unstakeWei(create_bid_tx.return_value, {'from': accounts[3]})
+    # Check payment.
+    assert exchange.balance() == 0
+
+def test_unstake_wei_when_asker_receive_nft(exchange, create_tokens) -> None:
+    first_fake_token, second_fake_token = create_tokens
+    first_fake_token.mint(13424, accounts[3])
+    second_fake_token.mint(25252, accounts[4])
+    # Create bid.
+    create_bid_tx: TransactionReceipt = exchange.createBid(
+        13424,
+        25252,
+        first_fake_token.address,
+        second_fake_token.address,
+        700,
+        3000,
+        {'from': accounts[3]}
+    )
+    # Stake bidder NFT.
+    first_fake_token.approve(exchange.address, 13424, {'from': accounts[3]})
+    exchange.stakeNft(create_bid_tx.return_value, 13424, {'from': accounts[3]})
+    # Stake asker NFT.
+    second_fake_token.approve(exchange.address, 25252, {'from': accounts[4]})
+    exchange.stakeNft(create_bid_tx.return_value, 25252, {'from': accounts[4]})
+    # Payment.
+    exchange.pay(create_bid_tx.return_value, {'from': accounts[3], 'value': 3000})
+    # Asker withdraw NFT.
+    exchange.withdrawNft(create_bid_tx.return_value, {'from': accounts[4]})
+    # Bidder tries to unstake Wei.
+    with reverts("It is impossible to return Wei after part of the reward has been received!"):
+        exchange.unstakeWei(create_bid_tx.return_value, {'from': accounts[3]})
