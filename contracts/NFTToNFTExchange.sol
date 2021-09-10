@@ -282,23 +282,24 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     )
     external {
         Trade memory trade = idToTrade[_tradeId];
-        if (
-            trade.bidderReceiveNft == false &&
-            trade.askerReceiveNft == false &&
-            trade.askerReceiveWei == false 
-        ) {
-            if (trade.bidder == msg.sender &&
-            nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.bidderNFTId) {
-                trade.bidderNFTAddress.safeTransferFrom(
-                    address(this), msg.sender, trade.bidderNFTId);
-                nftOwnerToTradeIdToNftId[msg.sender][_tradeId] = 0;
-            } else if (trade.asker == msg.sender &&
-            nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.askerNFTId) {
-                trade.askerNFTAddress.safeTransferFrom(
-                    address(this), msg.sender, trade.askerNFTId);
-                nftOwnerToTradeIdToNftId[msg.sender][_tradeId] = 0;
-            }
+        require(
+            trade.bidderReceiveNft == false ||
+            trade.askerReceiveNft == false ||
+            trade.askerReceiveWei == false,
+            "It is impossible to return NFT after part of the reward has been received!"
+        );
+        if (trade.bidder == msg.sender &&
+        nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.bidderNFTId) {
+            trade.bidderNFTAddress.safeTransferFrom(
+                address(this), msg.sender, trade.bidderNFTId);
+            nftOwnerToTradeIdToNftId[msg.sender][_tradeId] = 0;
+        } else if (trade.asker == msg.sender &&
+        nftOwnerToTradeIdToNftId[msg.sender][_tradeId] == trade.askerNFTId) {
+            trade.askerNFTAddress.safeTransferFrom(
+                address(this), msg.sender, trade.askerNFTId);
+            nftOwnerToTradeIdToNftId[msg.sender][_tradeId] = 0;
         }
+    
     }
 
     function unstakeWei(
