@@ -228,7 +228,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         _tradeId
     )
     {
-        Trade memory trade = idToTrade[_tradeId];
+        Trade storage trade = idToTrade[_tradeId];
         if (msg.sender == trade.bidder) {
             require(nftOwnerToTradeIdToNftId[trade.asker][_tradeId] != 0,
             "NFT is already withdrawed!");
@@ -268,7 +268,7 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         _tradeId
     )
     {   
-        Trade memory trade = idToTrade[_tradeId];
+        Trade storage trade = idToTrade[_tradeId];
         require(addressToTradeIdToWei[trade.bidder][_tradeId] != 0,
         "Wei is already withdrawed.");
         payable(msg.sender).transfer(trade.price);
@@ -283,9 +283,9 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
     external {
         Trade memory trade = idToTrade[_tradeId];
         require(
-            trade.bidderReceiveNft == false ||
-            trade.askerReceiveNft == false ||
-            trade.askerReceiveWei == false,
+            !(trade.bidderReceiveNft ||
+            trade.askerReceiveNft ||
+            trade.askerReceiveWei),
             "It is impossible to return NFT after part of the reward has been received!"
         );
         if (trade.bidder == msg.sender &&
