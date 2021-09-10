@@ -310,16 +310,17 @@ contract NFTToNFTExchange is Ownable, NFTToNFTExchangeDataEventsModifiers {
         _tradeId
     ) {
         Trade memory trade = idToTrade[_tradeId];
-        if (
-            trade.bidderReceiveNft == false &&
-            trade.askerReceiveWei == false &&
-            trade.askerReceiveWei == false
-        ) {
-            if (addressToTradeIdToWei[trade.asker][_tradeId] == trade.price) {
-                payable(trade.asker).transfer(trade.price);
-                addressToTradeIdToWei[trade.asker][_tradeId] = 0;
-            }
+        require(
+            !(trade.bidderReceiveNft ||
+            trade.askerReceiveNft ||
+            trade.askerReceiveWei),
+            "It is impossible to return Wei after part of the reward has been received!"
+        );
+        if (addressToTradeIdToWei[trade.asker][_tradeId] == trade.price) {
+            payable(trade.asker).transfer(trade.price);
+            addressToTradeIdToWei[trade.asker][_tradeId] = 0;
         }
+    
     }
    
     function getTradeById(
